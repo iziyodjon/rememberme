@@ -10,6 +10,7 @@ function dd($arr)
     echo '</pre>';
 }
 
+// Авторизация пользователя по логин пароль, запомнить меня
 function userAuth($login,$userpass,$remember = '')
 {
     // Подключения к БД
@@ -47,34 +48,11 @@ function userAuth($login,$userpass,$remember = '')
 
 
     }
+
+
 }
 
-function checkCookie()
-{
-    // Подключения к БД
-    $pdo = PDO();
-
-    if (empty($_SESSION['auth']) or $_SESSION['auth'] == false)
-    {
-        if(!empty($_COOKIE['login']) and !empty($_COOKIE['key']))
-        {
-            $login = $_COOKIE['login'];
-            $key = $_COOKIE['key'];
-
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE login=:login AND token=:token");
-            $stmt->execute(['login' => $login,'token' => $key]);
-            $res = $stmt->fetchColumn();
-
-            if (!empty($res))
-            {
-                // Обновляем сессию
-                $_SESSION['auth'] = true;
-                $_SESSION['login'] = $login;
-            }
-        }
-    }
-}
-
+// Проверка паролья по логину
 function checkPassByLogin($login)
 {
     // Подключения к БД
@@ -86,6 +64,8 @@ function checkPassByLogin($login)
     return $pass;
 
 }
+
+// Шифрование токена
 function crypToken($password)
 {
     if(!empty($password))
