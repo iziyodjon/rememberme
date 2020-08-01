@@ -11,42 +11,50 @@ function dd($arr)
 }
 
 // Авторизация пользователя по логин пароль, запомнить меня
-function userAuth($login,$userpass,$remember = '')
+function userAuth($login = '',$userpass = '',$remember = '')
 {
     // Подключения к БД
     $pdo = PDO();
 
-    $userpass = md5($userpass);
-    $bdpass = checkPassByLogin($login);
-
-    if($userpass == $bdpass)
+    if(!empty($login) and !empty($userpass))
     {
-        $_SESSION['auth'] = true;
-        $_SESSION['login'] = $login;
+        $userpass = md5($userpass);
+        $bdpass = checkPassByLogin($login);
 
-        // Если кнопк запомнить меня нажата
-        if(!empty($remember) and $remember == 1)
+        if($userpass == $bdpass)
         {
-            // Генерация token а
-            $key = crypToken($userpass);
+            $_SESSION['auth'] = true;
+            $_SESSION['login'] = $login;
 
-            // Пишем куки (имя куки, значение, время жизни - сейчас+месяц)
-            setcookie('login', $login, time()+60*60*24*30); //логин
-            setcookie('key', $key, time()+60*60*24*30); //случайная строка
+            // Если кнопка запомнить меня нажата
+            if(!empty($remember) and $remember == 1)
+            {
+                // Генерация token а
+                $key = crypToken($userpass);
 
-            $data = [
-                'token' => $key,
-                'login' => $login
-            ];
+                // Пишем куки (имя куки, значение, время жизни - сейчас+месяц)
+                setcookie('login', $login, time()+60*60*24*30); //логин
+                setcookie('key', $key, time()+60*60*24*30); //случайная строка
+
+                $data = [
+                    'token' => $key,
+                    'login' => $login
+                ];
 
 
-            $sql = "UPDATE users SET token =:token WHERE login =:login";
+                $sql = "UPDATE users SET token =:token WHERE login =:login";
 
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($data);
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($data);
+            }
+
         }
+    }
 
-
+    // Если в сессии login и auth или в куки login и token есть данные то редерект на personal.php
+    if(!empty($_COOKIE['key']) or $_SESSION['auth'] == true)
+    {
+        header('Location: /personal.php');
     }
 
 
@@ -75,5 +83,18 @@ function crypToken($password)
         $token = $ip.$pass;
 
         return $token;
+    }
+}
+
+function userExit($get)
+{
+    // Если user == out то выходим из системы
+    if($get == 'out')
+    {
+        $_SESSION['login'] = '';
+        $_SESSION['auth'] = 0;
+        setcookie("login","",time()-3600);
+        setcookie("key","",time()-3600);
+        header('Location: /');
     }
 }
