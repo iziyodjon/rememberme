@@ -2,14 +2,6 @@
 session_start();
 require_once ('libs/func.php');
 
-if(!empty($_SESSION['login']) and $_SESSION['auth'] == true)
-{
-    header('Location: /personal.php');
-}
-
-// Проверка куки
-checkCookie();
-
 // Получаем данные из формы
 $login = $_POST['login'];
 $password = $_POST['password'];
@@ -17,6 +9,12 @@ $remember = $_POST['remember'];
 
 // Авторизация юзера
 userAuth($login,$password,$remember);
+
+// Если в сессии login и auth или в куки login и token есть данные то редерект на personal.php
+if(!empty($_COOKIE['key']) or $_SESSION['auth'] == true)
+{
+    header('Location: /personal.php');
+}
 
 
 ?>
